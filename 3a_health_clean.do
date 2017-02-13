@@ -11,6 +11,15 @@ gen m2_gh_hstat_cat4_12 = m2_gh_hstat_cat4 <= 2 if m2_gh_hstat_cat4~=.
 global health m2_diff_vision m2_diff_hear m2_gh_hstat_cat4 m2_gh_hstat_poor m2_gh_hstat_cat4_12 m2_gh_hstat_fairpl_betavg m2_gh_hstat_good m2_gh_daysill m2_gh_adl_mob m2_gh_adl_mob_diff m2_gh_adl_mob_notatall m2_gh_adl_mob_easy m2_gh_adl_mobshort m2_gh_adl_mobshort_diff m2_gh_adl_mobshort_notatall m2_gh_adl_mobshort_easy m2_injury m2_injury_work m2_unint_injury m2_injury_disab cm46 smoke_m2_smokestat m2_smoke_perday m2_smoke_current m2_smoke_ever m2_diarrhea
 
 
+mmerge vill_id hhold_id line_no using "P:\pop\BANGLADESH_PROJECT\MHSS2\Master Data\20160107_public\b3_spn", ukeep(spn06cig)
+tab _merge
+drop if _merge==2
+
+mmerge vill_id hhold_id line_no using "P:\pop\BANGLADESH_PROJECT\MHSS2\Master Data\20160107_public\b3_cm"
+tab _merge
+drop if _merge==2
+
+
 /**************************/
 /*****Injuries************/
 /**************************/
