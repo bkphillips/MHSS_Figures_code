@@ -472,6 +472,7 @@ restore
 
 // Loops to create New Untrimmed graphs and tables
 local untrimmed_vars m2_ea_incyear m2_ea_incyear1 m2_ee_incyear2002 m2_ee_incyear2007 m2_ee_incyear2011
+local sum_stats mean median sd se cv kurt skew 	
 foreach var of local untrimmed_vars {
 
 	cap mkdir "C:/Users/phill/Box Sync/migrant followup/MHSS/3_figures/earnings/histograms/untrimmed"
@@ -500,8 +501,11 @@ foreach var of local untrimmed_vars {
 	
 preserve
 
-collapse (mean) mean=`var'  (median) median=`var'  (sd) sd=`var'  (semean) se=`var'   (count) count=`var'  , by(mig_status)
+	bysort mig_status : egen skew = skew(`var')
+	bysort mig_status : egen kurt = kurt(`var')
 
+collapse (mean) mean=`var' skew kurt (median) median=`var'  (sd) sd=`var'  (semean) se=`var'   (count) count=`var'  , by(mig_status)
+	gen cv = (sd / mean) * 100
 	foreach var of local sum_stats {
 		replace `var' = round(`var',.01)
 	}
@@ -510,7 +514,7 @@ collapse (mean) mean=`var'  (median) median=`var'  (sd) sd=`var'  (semean) se=`v
 
 gen var_name = "`var'"
 
-order var_name mig_status count mean median sd se
+order var_name mig_status count mean median sd se cv skew kurt
 export excel using "C:/Users/phill/Box Sync/migrant followup/MHSS/3_figures/earnings/tables/untrimmed/table_`var'.xlsx", firstrow(variables) sheetreplace
 
 tempfile untrimmed_`var'
@@ -519,7 +523,7 @@ restore
 	
 }
 
-use `untrimmed_m2_ea_incyear', clear
+use "`untrimmed_m2_ea_incyear'", clear
 
 foreach var in m2_ea_incyear1 m2_ee_incyear2002 m2_ee_incyear2007 m2_ee_incyear2011 {
 	append using `untrimmed_`var''
@@ -559,8 +563,7 @@ foreach var of local table_list {
 	
 	reshape long variable_, i(vill_id hhold_id line_no mig_status) j(year_num)
 	
-	bysort year_num mig_status : egen skew = skew(variable_)
-	bysort year_num mig_status : egen kurt = kurt(variable_)
+
 		
 	
 	collapse (mean) mean=variable_  kurt skew (median) median=variable_  (sd) sd=variable_  (semean) se=variable_   (count) count=variable_  , by(year_num mig_status)

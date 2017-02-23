@@ -33,9 +33,12 @@ drop village
 // Restrict health dataset to men over 15 and under 59
 keep if lh05 == 1 & lh10year >= 15 & lh10year <= 59
 
+save "P:\pop\BANGLADESH_PROJECT\MHSS2\Analysis Files\Data\Migrant\MHSS2_health_males_15.dta", replace
+
 //////////////////////////////////////////////////
 // FIGURES /////////////////////////////////////
 //////////////////////////////////////////////////
+use "P:\pop\BANGLADESH_PROJECT\MHSS2\Analysis Files\Data\Migrant\MHSS2_health_males_15.dta", clear
 
 
 // BMI FIGURES /////////////////////////////////
@@ -219,6 +222,214 @@ foreach var of local health {
 	
 	restore
 }
+
+
+
+////////////////////////////////
+// Compiled table of other vars
+///////////////////////////////
+// Health TABLES
+
+use "P:\pop\BANGLADESH_PROJECT\MHSS2\Analysis Files\Data\Migrant\MHSS2_health_males_15.dta", clear
+
+
+local sum_stats count mean median sd se cv kurt skew 
+
+local health m2_diff_vision m2_diff_hear m2_gh_hstat_cat4 m2_gh_hstat_poor m2_gh_hstat_cat4_12 m2_gh_hstat_fairpl_betavg m2_gh_hstat_good m2_gh_daysill m2_gh_adl_mob m2_gh_adl_mob_diff m2_gh_adl_mob_notatall m2_gh_adl_mob_easy m2_gh_adl_mobshort m2_gh_adl_mobshort_diff m2_gh_adl_mobshort_notatall m2_gh_adl_mobshort_easy m2_injury m2_unint_injury m2_smokestat m2_smoke_current m2_smoke_ever m2_diarrhea 
+// had to take out from local: 
+// m2_injury_work m2_injury_disab cm46 m2_smoke_perday m2_asthma_simple  m2_angina_screen
+
+foreach var of local health {
+	rename `var' oth_`var'
+}
+
+reshape long oth_, i(vill_id hhold_id line_no) j(var_name) string
+
+preserve
+
+bysort mig_status var_name : egen skew = skew(oth_)
+bysort mig_status var_name : egen kurt = kurt(oth_)
+
+collapse (mean) mean=oth_ skew kurt (median) median=oth_ (sd) sd=oth_ (semean) se=oth_ (count)  count=oth_, by(var_name mig_status)
+	gen cv = (sd / mean) * 100
+	
+foreach var of local sum_stats {
+	replace `var' = round(`var',.01)
+}
+
+order var_name mig_status count mean median sd se cv kurt skew	
+
+export excel using "C:/Users/phill/Box Sync/migrant followup/MHSS/3_figures/health/all_health_vars/Compiled_Health_Table_by_mig.xlsx", firstrow(variables) sheetreplace
+
+keep var_name mig_status mean sd
+
+reshape wide mean sd, i(var_name) j(mig_status)
+
+order var_name mean0 sd0 mean1 sd1 mean2 sd2 mean3 sd3 
+
+
+export excel using "C:/Users/phill/Box Sync/migrant followup/MHSS/3_figures/health/all_health_vars/Health_Table_of_means.xlsx", firstrow(variables) sheetreplace
+
+	
+
+restore
+
+preserve
+
+bysort var_name : egen skew = skew(oth_)
+bysort var_name : egen kurt = kurt(oth_)
+
+collapse (mean) mean=oth_ skew kurt (median) median=oth_ (sd) sd=oth_ (semean) se=oth_ (count)  count=oth_, by(var_name)
+	gen cv = (sd / mean) * 100
+
+	
+local sum_stats count mean median sd se cv kurt skew 	
+foreach var of local sum_stats {
+	replace `var' = round(`var',.01)
+}
+	
+order var_name count mean median sd se cv kurt skew
+
+export excel using "C:/Users/phill/Box Sync/migrant followup/MHSS/3_figures/health/all_health_vars/Compiled_Health_Table.xlsx", firstrow(variables) sheetreplace
+
+restore
+
+
+
+// ////////////////////////////
+// Physical TABLES
+
+use "P:\pop\BANGLADESH_PROJECT\MHSS2\Analysis Files\Data\Migrant\MHSS2_health_males_15.dta", clear
+
+local physical m2_hyper m2_arthritis m2_angina m2_asthma m2_diabetes m2_stroke m2_cld m2_diff_vision_l m2_diff_vision_r m2_diff_vision m2_cataract m2_diff_hear b6_bp_sys_avg b6_bp_sys_avgcl b6_bp_dia_avg b6_bp_dia_avgcl bp_pulse_avg bp_pulse_avgcl b6_bp_systolic b6_bp_optimalcl	b6_bp_normalcl b6_bp_highnormalcl b6_bp_hyperstage1plcl	b6_bp_hyperstage2plcl b6_bp_hyperstage3cl b6_opc_score b6_opc_score_notap b6_gs_max_dom b6_gs_max_domcl b6_gs_max_nondom b6_gs_avg_domcl b6_gs_avg_nondomcl m2_waistcl m2_hipcl m2_armcl
+
+local sum_stats count mean median sd se cv kurt skew 
+
+
+foreach var of local physical {
+	rename `var' oth_`var'
+}
+
+
+
+reshape long oth_, i(vill_id hhold_id line_no) j(var_name) string
+
+preserve
+
+bysort mig_status var_name : egen skew = skew(oth_)
+bysort mig_status var_name : egen kurt = kurt(oth_)
+
+collapse (mean) mean=oth_ skew kurt (median) median=oth_ (sd) sd=oth_ (semean) se=oth_ (count)  count=oth_, by(var_name mig_status)
+	gen cv = (sd / mean) * 100
+	
+foreach var of local sum_stats {
+	replace `var' = round(`var',.01)
+}
+
+order var_name mig_status count mean median sd se cv kurt skew	
+
+export excel using "C:/Users/phill/Box Sync/migrant followup/MHSS/3_figures/health/all_health_vars/Compiled_Physical_Table_by_mig.xlsx", firstrow(variables) sheetreplace
+	
+keep var_name mig_status mean sd
+
+reshape wide mean sd, i(var_name) j(mig_status)
+
+order var_name mean0 sd0 mean1 sd1 mean2 sd2 mean3 sd3 
+
+
+export excel using "C:/Users/phill/Box Sync/migrant followup/MHSS/3_figures/health/all_health_vars/Physical_Table_of_means.xlsx", firstrow(variables) sheetreplace
+
+	
+restore
+
+preserve
+
+bysort var_name : egen skew = skew(oth_)
+bysort var_name : egen kurt = kurt(oth_)
+
+collapse (mean) mean=oth_ skew kurt (median) median=oth_ (sd) sd=oth_ (semean) se=oth_ (count)  count=oth_, by(var_name)
+	gen cv = (sd / mean) * 100
+
+	
+local sum_stats count mean median sd se cv kurt skew 	
+foreach var of local sum_stats {
+	replace `var' = round(`var',.01)
+}
+	
+order var_name count mean median sd se cv kurt skew
+
+export excel using "C:/Users/phill/Box Sync/migrant followup/MHSS/3_figures/health/all_health_vars/Compiled_Physical_Table.xlsx", firstrow(variables) sheetreplace
+
+restore
+
+
+// Height, Weight, BMI
+use "P:\pop\BANGLADESH_PROJECT\MHSS2\Analysis Files\Data\Migrant\MHSS2_health_males_15.dta", clear
+
+
+gen overweight = m2_bmicl >= 25
+gen obese = m2_bmicl >= 30
+
+
+local basic_health m2_heightcl m2_weightcl m2_bmicl overweight obese
+local sum_stats count mean median sd se cv kurt skew 
+
+
+foreach var of local basic_health {
+	rename `var' oth_`var'
+}
+
+
+
+reshape long oth_, i(vill_id hhold_id line_no) j(var_name) string
+
+preserve
+
+bysort mig_status var_name : egen skew = skew(oth_)
+bysort mig_status var_name : egen kurt = kurt(oth_)
+
+collapse (mean) mean=oth_ skew kurt (median) median=oth_ (sd) sd=oth_ (semean) se=oth_ (count)  count=oth_, by(var_name mig_status)
+	gen cv = (sd / mean) * 100
+	
+foreach var of local sum_stats {
+	replace `var' = round(`var',.01)
+}
+
+order var_name mig_status count mean median sd se cv kurt skew	
+
+keep var_name mig_status mean sd
+
+reshape wide mean sd, i(var_name) j(mig_status)
+
+order var_name mean0 sd0 mean1 sd1 mean2 sd2 mean3 sd3 
+
+
+export excel using "C:/Users/phill/Box Sync/migrant followup/MHSS/3_figures/health/all_health_vars/Compiled_Basic_Health_Table_by_mig.xlsx", firstrow(variables) sheetreplace
+	
+restore
+
+
+// OTHER DISABILITY Table (single item questions for all four migrant groups)
+
+
+ m2_injury_work m2_injury_disab m2_smoke_perday m2_asthma_screen m2_angina_screen
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
